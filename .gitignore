@@ -1,0 +1,60 @@
+# --- Maven / Java ---
+# Build output
+/target/
+*.jar
+*.war
+*.ear
+
+# Maven wrapper (keep if present; ignore otherwise)
+.mvn/
+
+# Maven local repository (optional; usually not present in projects)
+/.m2/
+
+# IDEs / Editors
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment / secrets
+.env
+.env.*
+*.env
+
+# Spring Boot
+application-*.properties
+application-*.yml
+application-*.yaml
+
+# Runtime data
+*.class
+
+# Eclipse / IntelliJ build folders (extra safety)
+bin/
+out/
+
+# If you generate keystores/certs locally
+*.jks
+*.p12
+*.pem
+*.key
+
+# Coverage / test reports
+coverage/
+*.lcov
+*.pid
+
+# Misc
+*.swp
+*~
+

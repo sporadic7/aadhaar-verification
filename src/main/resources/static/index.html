@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+
+  <title>Aadhaar Verification System — DigiLocker Demo</title>
+
+  <!-- Fonts & Icons (CDN) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    :root{
+      --bg:#071126;
+      --panel:#0c1630;
+      --panel2:#0a1329;
+      --text:#eaf2ff;
+      --muted:#a9bddc;
+      --border:rgba(122,156,209,.28);
+      --blue:#1d4ed8;
+      --blue2:#60a5fa;
+      --green:#22c55e;
+      --red:#ef4444;
+      --yellow:#f59e0b;
+      --shadow: 0 18px 55px rgba(0,0,0,.45);
+      --shadow2: 0 10px 30px rgba(0,0,0,.32);
+      --radius:18px;
+    }
+
+    /* Better perceived contrast + crispness */
+    body{ -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(1100px 700px at 18% 10%, rgba(47,111,235,.22), transparent 55%),
+        radial-gradient(900px 540px at 85% 20%, rgba(96,165,250,.14), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      line-height:1.45;
+    }
+    .wrap{max-width:1150px; margin:0 auto; padding:22px 16px 46px;}
+
+    /* Topbar */
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+      padding:16px 16px; border:1px solid var(--border); border-radius:20px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      box-shadow: var(--shadow2);
+      position:sticky; top:12px; z-index:10;
+      backdrop-filter: blur(10px);
+    }
+    .brand{display:flex; align-items:center; gap:12px; min-width:280px;}
+    .logo{
+      width:44px; height:44px; border-radius:14px;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255,255,255,.35), transparent 55%),
+        linear-gradient(135deg, rgba(47,111,235,.95), rgba(96,165,250,.6));
+      display:grid; place-items:center; border:1px solid rgba(255,255,255,.14);
+      box-shadow: 0 10px 25px rgba(47,111,235,.25);
+      flex:0 0 auto;
+    }
+    .logo i{font-size:18px}
+    .title{display:flex; flex-direction:column; gap:3px;}
+    .title h1{font-size:16px; margin:0; letter-spacing:.2px;}
+    .title p{margin:0; color:var(--muted); font-size:13px}
+
+    .liveRow{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;}
+    .pill{
+      border:1px solid var(--border);
+      background:rgba(15,23,42,.55);
+      padding:8px 10px; border-radius:999px;
+      display:flex; align-items:center; gap:8px;
+      color:var(--muted); font-size:13px;
+    }
+    .dot{width:9px; height:9px; border-radius:50%; background:var(--yellow); box-shadow:0 0 0 6px rgba(245,158,11,.15)}
+    .dot.ok{background:var(--green); box-shadow:0 0 0 6px rgba(34,197,94,.14)}
+    .dot.bad{background:var(--red); box-shadow:0 0 0 6px rgba(239,68,68,.16)}
+
+    .grid{display:grid; gap:14px;}
+    .g3{grid-template-columns:repeat(3, minmax(0,1fr));}
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow2);
+      padding:16px;
+    }
+
+    /* Stat cards */
+    .statTop{display:flex; align-items:flex-start; justify-content:space-between; gap:12px;}
+    .statIcon{
+      width:36px; height:36px; border-radius:12px;
+      background:rgba(47,111,235,.14); border:1px solid rgba(47,111,235,.32);
+      display:grid; place-items:center;
+    }
+    .statIcon i{color:var(--blue2)}
+    .statLabel{color:var(--muted); font-size:13px; margin-top:6px}
+    .statValue{font-size:24px; font-weight:800; letter-spacing:.2px; margin-top:4px}
+
+    /* Flow layout */
+    .flow{
+      display:grid;
+      grid-template-columns: 1.25fr .85fr;
+      gap:14px;
+      align-items:start;
+      margin-top:14px;
+    }
+
+    .steps{display:flex; flex-direction:column; gap:12px;}
+    .step{
+      display:flex; gap:12px; align-items:flex-start;
+      padding:12px; border-radius:14px;
+      border:1px solid rgba(31,42,68,.85);
+      background:rgba(15,23,42,.35);
+      transition: transform .18s ease, border-color .18s ease;
+    }
+    .step:hover{transform: translateY(-1px); border-color: rgba(96,165,250,.35)}
+    .stepNum{
+      width:30px; height:30px; border-radius:12px;
+      background:rgba(47,111,235,.16); border:1px solid rgba(47,111,235,.35);
+      display:grid; place-items:center; font-weight:800; color:var(--blue2);
+      flex:0 0 auto;
+    }
+    .step h3{margin:0; font-size:14px}
+    .step p{margin:4px 0 0; color:var(--muted); font-size:13px}
+
+    .inputRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px}
+    label{font-size:13px; color:var(--muted)}
+
+    .control{
+      width:100%; padding:12px 12px; border-radius:12px;
+      border:1px solid rgba(31,42,68,1);
+      background:rgba(12,19,36,.65);
+      color:var(--text); outline:none;
+      transition: border-color .15s ease;
+    }
+    .control:focus{border-color: rgba(96,165,250,.55)}
+    .field{flex:1 1 260px; display:flex; flex-direction:column; gap:6px;}
+
+    .btn{
+      padding:12px 14px; border-radius:12px;
+      border:1px solid rgba(96,165,250,.35);
+      background: linear-gradient(135deg, rgba(47,111,235,1), rgba(96,165,250,.75));
+      color:white; font-weight:800;
+      cursor:pointer;
+      transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
+      box-shadow: 0 12px 30px rgba(47,111,235,.25);
+      white-space:nowrap;
+    }
+    .btn:hover{transform: translateY(-1px); filter: brightness(1.04)}
+    .btn:disabled{opacity:.65; cursor:not-allowed; transform:none; box-shadow:none}
+    .btn.secondary{
+      background: rgba(15,23,42,.55);
+      border:1px solid rgba(31,42,68,1);
+      box-shadow:none;
+      color:var(--text);
+      font-weight:700;
+    }
+
+    /* Result */
+    .resultCard{
+      padding:18px; border-radius:var(--radius);
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+      position:relative; overflow:hidden;
+      display:none;
+    }
+    .resultCard::before{
+      content:""; position:absolute; inset:-2px; pointer-events:none;
+      background:
+        radial-gradient(600px 200px at 20% 0%, rgba(47,111,235,.28), transparent 55%),
+        radial-gradient(520px 220px at 92% 30%, rgba(96,165,250,.18), transparent 60%);
+      opacity:.75;
+    }
+    .resultInner{position:relative;}
+    .slideIn{animation: slideIn .35s ease both;}
+    @keyframes slideIn{from{opacity:0; transform: translateY(10px)} to{opacity:1; transform: translateY(0)}}
+    .resultHeader{display:flex; align-items:flex-start; justify-content:space-between; gap:12px;}
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:7px 10px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(15,23,42,.5);
+      font-size:13px; font-weight:900;
+    }
+    .badge.ok{border-color: rgba(34,197,94,.35); color:#bff7d0}
+    .badge.bad{border-color: rgba(239,68,68,.35); color:#ffd1d1}
+
+    .kv{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px}
+    .kv .k{padding:10px 12px; border-radius:14px; border:1px solid rgba(31,42,68,.9); background:rgba(12,19,36,.55)}
+    .kv .k .lab{color:var(--muted); font-size:12px}
+    .kv .k .val{font-weight:900; margin-top:4px}
+
+    .notice{
+      margin-top:14px; padding:12px; border-radius:14px;
+      border:1px solid rgba(245,158,11,.35);
+      background:rgba(245,158,11,.10);
+      color:#ffe9c2; font-size:13px;
+    }
+
+    /* Accordion */
+    details{border:1px solid var(--border); border-radius:16px; padding:12px 14px; background:rgba(15,23,42,.35)}
+    details + details{margin-top:12px}
+    summary{cursor:pointer; font-weight:900}
+    details p, details ul{color:var(--muted)}
+    details ul{margin:10px 0 0; padding-left:18px}
+    details li{margin:6px 0}
+
+    /* Table */
+    .tableWrap{overflow:auto; border-radius:16px; border:1px solid var(--border); background:rgba(15,23,42,.22)}
+    table{width:100%; border-collapse:collapse; min-width:680px;}
+    th,td{padding:12px 12px; border-bottom:1px solid rgba(31,42,68,.9); text-align:left}
+    th{position:sticky; top:0; background:rgba(15,23,42,.8); color:var(--muted); font-size:12px; letter-spacing:.2px; text-transform:uppercase}
+    td{color:var(--text); font-size:13px}
+
+    .statusCell{display:flex; align-items:center; gap:10px;}
+    .miniDot{width:10px; height:10px; border-radius:50%}
+    .miniDot.ok{background:var(--green)}
+    .miniDot.bad{background:var(--red)}
+
+    .tip{position:relative; display:inline-flex; align-items:center}
+
+    .toast{
+      position:fixed; right:16px; bottom:16px; z-index:9999;
+      background:rgba(15,23,42,.88); border:1px solid rgba(31,42,68,1);
+      border-radius:14px; padding:12px 14px; color:var(--text);
+      box-shadow: var(--shadow);
+      max-width:420px;
+      opacity:0; transform: translateY(8px);
+      transition: opacity .18s ease, transform .18s ease;
+      pointer-events:none;
+    }
+
+    .spinner{
+      width:18px; height:18px; border-radius:50%;
+      border:3px solid rgba(255,255,255,.18);
+      border-top-color: rgba(255,255,255,.78);
+      animation: spin .9s linear infinite;
+      display:inline-block;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Loading line */
+    #loadingLine{display:none; margin-top:10px; color:var(--muted); font-size:13px; align-items:center; gap:10px;}
+
+    /* Tooltip */
+    .tip span{
+      position:absolute; left:50%; transform:translateX(-50%);
+      bottom:calc(100% + 10px);
+      width:max-content; max-width:300px;
+      padding:10px 12px;
+      background:#0b1220;
+      border:1px solid var(--border);
+      border-radius:12px;
+      color:#dbe7ff;
+      opacity:0; pointer-events:none;
+      transition: opacity .15s ease, transform .15s ease;
+      box-shadow: var(--shadow2);
+      font-size:13px;
+      z-index:20;
+    }
+    .tip:hover span{opacity:1; transform:translateX(-50%) translateY(-2px)}
+
+    /* Footer */
+    .footer{margin-top:16px; color:var(--muted); text-align:center; font-size:13px}
+    .footer strong{color:var(--text)}
+
+    @media (max-width: 920px){
+      .g3{grid-template-columns:1fr;}
+      .flow{grid-template-columns:1fr;}
+      .kv{grid-template-columns:1fr;}
+      table{min-width:520px;}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"><i class="fa-solid fa-id-card"></i></div>
+        <div class="title">
+          <h1>Aadhaar Verification System</h1>
+          <p>DigiLocker Integration Demo</p>
+        </div>
+      </div>
+
+      <div class="liveRow">
+        <div class="pill" title="Backend connectivity">
+          <span id="liveDot" class="dot"></span>
+          <span id="liveText">Live: checking…</span>
+        </div>
+        <div class="pill" title="Full Aadhaar never stored">
+          <i class="fa-solid fa-shield-halved" style="color:#ffd36a"></i>
+          <span>Compliance: Last-4 only</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Overview -->
+    <div class="grid g3" style="margin-top:14px">
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="statLabel">Verification Status</div>
+            <div id="statStatus" class="statValue">—</div>
+          </div>
+          <div class="statIcon"><i class="fa-solid fa-circle-nodes"></i></div>
+        </div>
+        <div class="helper" style="margin-top:10px; color:var(--muted); font-size:13px">
+          <div id="liveDetail" style="display:flex; gap:10px; flex-wrap:wrap">
+            <span style="display:inline-flex; gap:8px; align-items:center"><span class="miniDot" id="sBack" style="background:var(--yellow)" ></span> Backend: —</span>
+            <span style="display:inline-flex; gap:8px; align-items:center"><span class="miniDot" style="background:rgba(96,165,250,.9)" ></span> Processing: Waiting for user</span>
+            <span style="display:inline-flex; gap:8px; align-items:center"><span class="miniDot" style="background:rgba(31,42,68,.9)" ></span> Verification: —</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="statLabel">Total Verifications</div>
+            <div id="statCount" class="statValue">0</div>
+          </div>
+          <div class="statIcon"><i class="fa-solid fa-chart-simple"></i></div>
+        </div>
+        <div class="helper" style="margin-top:10px; color:var(--muted); font-size:13px">Recent runs in this demo.</div>
+      </div>
+
+
+      <div class="card">
+        <div class="statTop">
+          <div>
+            <div class="statLabel">API Health</div>
+            <div id="statHealth" class="statValue">—</div>
+          </div>
+          <div class="statIcon"><i class="fa-solid fa-heart-pulse"></i></div>
+        </div>
+        <div class="helper" style="margin-top:10px; color:var(--muted); font-size:13px">Uses <code style="color:var(--text)">/api/aadhaar/health</code> when available.</div>
+      </div>
+    </div>
+
+    <!-- Main Demo Flow -->
+    <div class="flow">
+      <!-- Left: steps -->
+      <div>
+        <div class="card" style="margin-top:14px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+            <div>
+              <div style="font-weight:1000; font-size:15px">Demo Flow</div>
+              <div class="helper">Step-by-step DigiLocker verification walkthrough.</div>
+            </div>
+            <div class="tip" title="Tooltips">
+              <i class="fa-solid fa-circle-info" style="color:var(--muted)"></i>
+              <span>Backend calls are optional. If backend is offline, UI uses a safe mock response.</span>
+            </div>
+          </div>
+
+          <div class="steps" style="margin-top:12px">
+            <div class="step">
+              <div class="stepNum">1</div>
+              <div>
+                <h3>Enter User ID</h3>
+                <p>Used only to label this demo run. No Aadhaar number is collected from input.</p>
+                <div class="inputRow">
+                  <div class="field">
+                    <label for="userId">User ID</label>
+                    <input id="userId" class="control" placeholder="e.g. U-1027" maxlength="32" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="stepNum">2</div>
+              <div>
+                <h3>Click Verify</h3>
+                <p>Health check + mock verification. When backend is live, it calls the mock verify API.</p>
+                <div class="inputRow">
+                  <button id="btnVerify" class="btn" type="button">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px"></i>
+                    Verify Aadhaar
+                  </button>
+                  <button id="btnReset" class="btn secondary" type="button"><i class="fa-solid fa-rotate-left" style="margin-right:8px"></i>Reset</button>
+                </div>
+
+                <div id="loadingLine">
+                  <span class="spinner" aria-hidden="true"></span>
+                  <span id="loadingText">Processing…</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="stepNum">3</div>
+              <div>
+                <h3>Redirect to DigiLocker</h3>
+                <p>When backend is online, UI generates and shows the authorize URL.</p>
+                <div style="margin-top:10px">
+                  <div class="muted" style="font-size:13px; color:var(--muted)">Authorize URL</div>
+                  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px">
+                    <input id="authorizeUrl" class="control" style="flex:1 1 420px" value="—" readonly />
+                    <button id="btnCopyUrl" class="btn secondary" type="button" disabled>
+                      <i class="fa-regular fa-copy" style="margin-right:8px"></i>Copy
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="stepNum">4</div>
+              <div>
+                <h3>Callback Processing</h3>
+                <p id="stepCallback">Waiting for user…</p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="stepNum">5</div>
+              <div>
+                <h3>Verification Complete</h3>
+                <p id="stepDone">No verification yet. Click <b>Verify Aadhaar</b>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="card" style="margin-top:14px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+            <div>
+              <div style="font-weight:1000; font-size:15px">Recent Verifications</div>
+              <div class="helper">Live data from H2 (fallback table in offline mode).</div>
+            </div>
+            <button id="btnRefresh" class="btn secondary" type="button" style="padding:10px 12px">
+              <i class="fa-solid fa-rotate" style="margin-right:8px"></i>Refresh
+            </button>
+          </div>
+
+          <div class="tableWrap" style="margin-top:12px">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:160px">User ID</th>
+                  <th style="width:140px">Last 4 Digits</th>
+                  <th style="width:150px">Status</th>
+                  <th style="width:200px">Time</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody">
+                <tr>
+                  <td colspan="4" style="color:var(--muted); padding:16px">Run verification to see history.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="helper" style="margin-top:10px; color:var(--muted); font-size:13px">
+            Note: Demo persists only the last 4 digits, not full Aadhaar.
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: result + manual callback + API response -->
+      <div>
+        <div class="card" style="margin-top:14px">
+          <div style="font-weight:1000; font-size:15px; display:flex; align-items:center; gap:10px">
+            <i class="fa-solid fa-bolt"></i> Verification Result
+          </div>
+          <div class="helper">Slides in after processing.</div>
+
+          <div id="resultCard" class="resultCard">
+            <div class="resultInner">
+              <div class="resultHeader">
+                <div>
+                  <div class="muted" style="font-size:13px; color:var(--muted)">Verification Result</div>
+                  <div id="resultTitle" style="margin-top:6px; font-size:20px; font-weight:1000">—</div>
+                </div>
+                <div id="resultBadge" class="badge">—</div>
+              </div>
+
+              <div class="kv">
+                <div class="k"><div class="lab">User Name</div><div class="val" id="resName">—</div></div>
+                <div class="k"><div class="lab">DOB</div><div class="val" id="resDob">—</div></div>
+                <div class="k"><div class="lab">Aadhaar Last 4</div><div class="val" id="resLast4">—</div></div>
+                <div class="k"><div class="lab">Verified At</div><div class="val" id="resTime">—</div></div>
+
+              </div>
+
+              <div class="k" style="margin-top:10px"><div class="lab">Parsed Address</div><div class="val" id="resAddress">—</div></div>
+
+              <div class="notice">
+                <i class="fa-solid fa-lock" style="margin-right:8px"></i>
+                Full Aadhaar number is <b>never stored</b>. Only last 4 digits are persisted.
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:14px">
+            <div style="font-weight:1000; font-size:14px">Simulate Callback (UI)</div>
+            <div class="helper">Optional. In demo mode we use mock verify.</div>
+
+            <div class="inputRow" style="margin-top:12px">
+              <div class="field">
+                <label for="codeInput">Authorization code</label>
+                <input id="codeInput" class="control" placeholder="e.g. abc123" />
+              </div>
+              <button id="btnMockCallback" class="btn secondary" type="button" disabled>
+                <i class="fa-solid fa-right-to-bracket" style="margin-right:8px"></i>
+                Simulate callback
+              </button>
+            </div>
+          </div>
+
+          <div style="margin-top:14px">
+            <div style="font-weight:1000; font-size:14px">API Response (mock or live)</div>
+            <pre id="apiResponse" style="margin-top:10px; background:rgba(12,19,36,.65); border:1px solid var(--border); border-radius:14px; padding:12px; white-space:pre-wrap; color:#dbe7ff; min-height:120px">{}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Details -->
+    <div class="grid" style="margin-top:14px">
+      <div class="card">
+        <div style="font-weight:1000; font-size:15px">Technical Details</div>
+        <div class="helper">Client-friendly explanation.</div>
+
+        <details open>
+          <summary><i class="fa-solid fa-diagram-project" style="margin-right:10px"></i>How it works</summary>
+          <p style="margin:10px 0 0;">
+            Backend performs: <b>OAuth code exchange</b> → <b>download eAadhaar XML</b> → <b>parse XML</b> (Name/DOB/Address/Last-4) → <b>persist last-4 only</b>.
+          </p>
+        </details>
+
+        <details>
+          <summary><i class="fa-solid fa-route" style="margin-right:10px"></i>API Endpoints</summary>
+          <ul>
+            <li><code>GET /api/aadhaar/health</code> — health check</li>
+            <li><code>GET /api/aadhaar/digilocker/authorize-url?state=...</code> — generates OAuth authorize URL</li>
+            <li><code>POST /api/digilocker/mock-verify</code> — mock verification (demo mode)</li>
+            <li><code>GET /api/aadhaar/verifications/recent</code> — recent verification rows</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary><i class="fa-solid fa-shield-heart" style="margin-right:10px"></i>Security & Compliance</summary>
+          <ul>
+            <li>Full Aadhaar number is never stored or returned.</li>
+            <li>Only last 4 digits extracted from XML are persisted.</li>
+            <li>Compliance notice is emphasized in UI.</li>
+          </ul>
+        </details>
+
+        <details>
+          <summary><i class="fa-solid fa-circle-info" style="margin-right:10px"></i>Status</summary>
+          <p style="margin:10px 0 0;">Live indicator updates from backend health. If backend is offline, UI falls back to mock output.</p>
+        </details>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div><strong>Built with Spring Boot</strong> | Demo Purpose Only</div>
+      <div style="margin-top:6px">Compliance notice: Full Aadhaar number never stored</div>
+      <div style="margin-top:6px">© 2026 Aadhaar Verification System</div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function fmtTime(d){
+      const pad=(n)=>String(n).padStart(2,'0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    let backendLive = false;
+
+    // Fallback demo history
+    const fallbackHistory = [
+      { userId:'U-1027', aadhaarLast4:'9012', status:'VERIFIED', timestamp:'2026-06-18 10:30:00', name:'Rahul Sharma', dob:'15-08-1990', address:'123, MG Road, Mumbai, Maharashtra' },
+      { userId:'U-1028', aadhaarLast4:'4567', status:'VERIFIED', timestamp:'2026-06-18 10:35:00', name:'Anita Verma', dob:'02-03-1988', address:'55, Residency Road, Pune, Maharashtra' },
+      { userId:'U-1029', aadhaarLast4:'----', status:'FAILED', timestamp:'2026-06-18 10:40:00', name:'—', dob:'—', address:'—' },
+    ];
+
+    function setLive(isOk, label){
+      const dot = $('liveDot');
+      if(isOk === true){ dot.classList.add('ok'); dot.classList.remove('bad'); }
+      else if(isOk === false){ dot.classList.add('bad'); dot.classList.remove('ok'); }
+      else { dot.classList.remove('ok','bad'); }
+      $('liveText').textContent = label;
+    }
+
+    function setVerificationStatus(statusText){
+      $('statStatus').textContent = statusText;
+    }
+
+    function setProcessing(detail){
+      // Keep processing UI predictable: backend/live already handled elsewhere.
+      // (This demo page shows processing state via inlineHTML in runVerify().)
+      // Left intentionally for future refinement.
+    }
+
+
+
+
+    function renderHistory(list){
+      const tbody = $('historyBody');
+      if(!Array.isArray(list) || list.length===0){
+        tbody.innerHTML = `<tr><td colspan="4" style="color:var(--muted); padding:16px">No verifications yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(r => {
+        const ok = (r.status === 'VERIFIED');
+        const dotClass = ok ? 'ok' : 'bad';
+        const statusText = ok ? 'VERIFIED' : 'FAILED';
+        const last4 = r.aadhaarLast4 ?? '—';
+        const ts = r.timestamp ?? '—';
+        return `
+          <tr>
+            <td>${escapeHtml(r.userId ?? '—')}</td>
+            <td>${escapeHtml(String(last4))}</td>
+            <td>
+              <div class="statusCell">
+                <span class="miniDot ${dotClass}"></span>
+                <span style="font-weight:900">${statusText}</span>
+              </div>
+            </td>
+            <td>${escapeHtml(String(ts))}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'<','>':'>','"':'"',"'":'&#39;'}[c]));
+    }
+
+    async function tryFetchJson(url, options){
+      const res = await fetch(url, options);
+      const text = await res.text();
+      try{ return JSON.parse(text); } catch { return { raw:text, statusCode: res.status }; }
+    }
+
+    function updateApiResponse(data){
+      $('apiResponse').textContent = JSON.stringify(data, null, 2);
+    }
+
+    function showResult(r){
+      const ok = (r.status === 'VERIFIED');
+
+      $('resultCard').style.display = 'block';
+      $('resultCard').classList.remove('slideIn');
+      // force reflow
+      $('resultCard').offsetHeight;
+      $('resultCard').classList.add('slideIn');
+
+      $('resultTitle').textContent = ok ? 'Verification successful' : 'Verification failed';
+
+      const badge = $('resultBadge');
+      badge.classList.remove('ok','bad');
+      badge.classList.add(ok ? 'ok' : 'bad');
+      badge.innerHTML = ok
+        ? `<i class="fa-solid fa-circle-check"></i> VERIFIED`
+        : `<i class="fa-solid fa-circle-xmark"></i> FAILED`;
+
+      $('resName').textContent = r.fullName || r.name || '—';
+      $('resDob').textContent = r.dob || '—';
+      $('resLast4').textContent = r.aadhaarLast4 || '—';
+      $('resTime').textContent = r.timestamp || fmtTime(new Date());
+      $('resAddress').textContent = r.address || '—';
+
+      $('stepDone').innerHTML = ok
+        ? `Done. Status: <b>VERIFIED</b>. Only last 4 digits are persisted.`
+        : `Done. Status: <b>FAILED</b>.`;
+
+      $('stepCallback').textContent = ok ? 'Callback processing complete.' : 'Callback processing complete (failed).';
+
+      setVerificationStatus(ok ? 'VERIFIED' : 'FAILED');
+    }
+
+    function setLoading(on, text){
+      $('loadingLine').style.display = on ? 'flex' : 'none';
+      $('loadingText').textContent = text || 'Processing…';
+    }
+
+    async function checkHealth(){
+      $('statHealth').textContent = 'Checking…';
+      try{
+        // Backend health returns plain string
+        const res = await fetch('/api/aadhaar/health');
+        const text = await res.text();
+        backendLive = res.ok;
+
+        if(backendLive){
+          $('statHealth').textContent = 'Healthy';
+          $('sBack').style.background = 'var(--green)';
+          setLive(true, 'Live: backend connected');
+          $('btnMockCallback').disabled = false;
+        }else{
+          backendLive = false;
+          $('statHealth').textContent = 'Offline';
+          $('sBack').style.background = 'var(--red)';
+          setLive(false, 'Live: backend not reachable (mock mode)');
+          $('btnMockCallback').disabled = true;
+        }
+      }catch{
+        backendLive = false;
+        $('statHealth').textContent = 'Offline';
+        $('sBack').style.background = 'var(--red)';
+        setLive(false, 'Live: backend not reachable (mock mode)');
+        $('btnMockCallback').disabled = true;
+      }
+    }
+
+    async function refreshHistory(){
+      try{
+        if(!backendLive){
+          $('statCount').textContent = String(fallbackHistory.length);
+          renderHistory(fallbackHistory);
+          return;
+        }
+
+        const data = await tryFetchJson('/api/aadhaar/verifications/recent');
+        // backend returns list of entity rows (id, aadhaarLast4, fullName, dob, address, verifiedAt, status)
+        const arr = Array.isArray(data) ? data : data?.data;
+        const mapped = (arr || []).map((x, idx) => ({
+          userId: (idx===0 ? ($('userId').value?.trim()||'U-1027') : '—'),
+          aadhaarLast4: x.aadhaarLast4,
+          status: x.status,
+          timestamp: x.verifiedAt ? String(x.verifiedAt).replace('T',' ').replace('Z','') : '—',
+          fullName: x.fullName,
+          dob: x.dob,
+          address: x.address
+        }));
+
+        $('statCount').textContent = String(mapped.length);
+        renderHistory(mapped);
+      }catch{
+        $('statCount').textContent = String(fallbackHistory.length);
+        renderHistory(fallbackHistory);
+      }
+    }
+
+    async function getAuthorizeUrl(){
+      const state = 'demo-' + Math.random().toString(16).slice(2,8);
+      const url = `/api/aadhaar/digilocker/authorize-url?state=${encodeURIComponent(state)}`;
+      try{
+        const res = await fetch(url);
+        const text = await res.text();
+        $('authorizeUrl').value = text;
+        $('btnCopyUrl').disabled = !res.ok;
+      }catch{
+        $('authorizeUrl').value = 'Backend offline — authorize URL generation not available.';
+        $('btnCopyUrl').disabled = true;
+      }
+    }
+
+    async function runVerify(){
+      const userId = ($('userId').value || '').trim();
+
+      // UX: ensure result is visible after verification
+      if(!userId){
+
+        alert('Enter a User ID first (e.g. U-1027).');
+        $('userId').focus();
+        return;
+      }
+
+      $('btnVerify').disabled = true;
+      $('btnVerify').innerHTML = `<span class="spinner" aria-hidden="true"></span> <span style="margin-left:10px">Verifying…</span>`;
+
+      setLoading(true, 'Processing callback and parsing eAadhaar XML…');
+      $('stepCallback').textContent = 'Processing callback and parsing eAadhaar XML…';
+      $('stepDone').textContent = 'Processing…';
+      $('resultCard').style.display = 'none';
+
+      // Update processing indicator
+      $('liveDetail').innerHTML = `
+        <span style="display:inline-flex; gap:8px; align-items:center"><span class="miniDot" id="sBack" style="background:${backendLive ? 'var(--green)' : 'var(--red)'}"></span> Backend: ${backendLive ? 'Online' : 'Offline'}</span>
+        <span style="display:inline-flex; gap:8px; align-items:center"><span class="miniDot" style="background:rgba(96,165,250,.9)"></span> Processing: Parsing XML + persisting last-4</span>
+        <span style="display:inline-flex; gap:8px; align-items:center"><span class="miniDot" style="background:rgba(31,42,68,.9)" ></span> Verification: —</span>
+      `;
+
+      let response = null;
+
+      try{
+        await checkHealth();
+        if(backendLive){
+          await getAuthorizeUrl();
+          // Prefer mock verify for demo
+          const r = await tryFetchJson('/api/digilocker/mock-verify', { method:'POST' });
+          response = {
+            status: r.status || 'VERIFIED',
+            aadhaarLast4: r.aadhaarLast4 || '9012',
+            // enrich for UI using fallback (since endpoint only returns last4+status)
+            fullName: 'Rahul Sharma',
+            dob: '15-08-1990',
+            address: '123, MG Road, Mumbai, Maharashtra',
+            timestamp: fmtTime(new Date())
+          };
+          updateApiResponse(r);
+        }else{
+          // Offline fallback
+          response = {
+            status: 'VERIFIED',
+            aadhaarLast4: '9012',
+            fullName: 'Rahul Sharma',
+            dob: '15-08-1990',
+            address: '123, MG Road, Mumbai, Maharashtra',
+            timestamp: fmtTime(new Date())
+          };
+          updateApiResponse({ status:'VERIFIED', aadhaarLast4:'9012', message:'Offline demo fallback' });
+          $('authorizeUrl').value = 'Backend offline — mock demo mode (no OAuth URL generated).';
+          $('btnCopyUrl').disabled = true;
+        }
+      }catch(e){
+        response = {
+          status: 'FAILED',
+          aadhaarLast4: '—',
+          fullName: '—',
+          dob: '—',
+          address: '—',
+          timestamp: fmtTime(new Date())
+        };
+        updateApiResponse({ status:'FAILED', error: String(e?.message||e) });
+      }
+
+      setLoading(false);
+
+      showResult(response);
+
+      // Refresh history UI (best-effort)
+      $('statCount').textContent = String(parseInt($('statCount').textContent||'0',10) + 1);
+      const newRow = {
+        userId,
+        aadhaarLast4: response.aadhaarLast4 || '—',
+        status: response.status,
+        timestamp: response.timestamp,
+        fullName: response.fullName,
+        dob: response.dob,
+        address: response.address
+      };
+
+      // If backend online, refresh from backend; else update fallback list
+      if(backendLive){
+        await refreshHistory();
+      }else{
+        const current = [newRow, ...fallbackHistory].slice(0,5);
+        renderHistory(current);
+      }
+
+      $('btnVerify').disabled = false;
+      $('btnVerify').innerHTML = `<i class="fa-solid fa-wand-magic-sparkles" style="margin-right:8px"></i>Verify Aadhaar`;
+    }
+
+    function resetAll(){
+      $('userId').value = '';
+      $('authorizeUrl').value = '—';
+      $('btnCopyUrl').disabled = true;
+      $('stepCallback').textContent = 'Waiting for user…';
+      $('stepDone').innerHTML = 'No verification yet. Click <b>Verify Aadhaar</b>.';
+      $('apiResponse').textContent = '{}';
+      $('resultCard').style.display = 'none';
+      $('statStatus').textContent = '—';
+      $('statCount').textContent = backendLive ? $('statCount').textContent : '0';
+      $('historyBody').innerHTML = `<tr><td colspan="4" style="color:var(--muted); padding:16px">Run verification to see history.</td></tr>`;
+    }
+
+    $('btnVerify').addEventListener('click', runVerify);
+    $('btnReset').addEventListener('click', ()=>{ resetAll(); refreshHistory(); });
+    $('btnRefresh').addEventListener('click', refreshHistory);
+
+    $('btnCopyUrl').addEventListener('click', async ()=>{
+      try{
+        await navigator.clipboard.writeText($('authorizeUrl').value);
+      }catch{
+        // ignore
+      }
+    });
+
+    $('btnMockCallback').addEventListener('click', ()=>{
+      // UI-only simulate; real callback would require backend + OAuth setup
+      runVerify();
+    });
+
+    // init
+    (async function init(){
+      $('authorizeUrl').value = '—';
+      $('btnCopyUrl').disabled = true;
+      setLive(null, 'Live: checking…');
+      $('statStatus').textContent = '—';
+      await checkHealth();
+      await refreshHistory();
+    })();
+  </script>
+</body>
+</html>
+

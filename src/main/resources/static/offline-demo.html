@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aadhaar Verification Demo (Offline)</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:24px; background:#0b1220; color:#e6edf3}
+    .card{background:#111b2e; padding:18px; border-radius:12px; max-width:980px; box-shadow:0 8px 24px rgba(0,0,0,.35)}
+    button{background:#2f6feb; border:0; color:white; padding:10px 14px; border-radius:10px; cursor:pointer; margin:8px 8px 0 0}
+    button.secondary{background:#22324f}
+    code{background:#0f172a; padding:2px 6px; border-radius:8px}
+    pre{background:#0f172a; padding:14px; border-radius:12px; overflow:auto; color:#dbe7ff}
+    .row{display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start}
+    .col{flex:1; min-width:320px}
+    .muted{opacity:.75}
+    table{width:100%; border-collapse:collapse}
+    th,td{border:1px solid #263652; padding:10px; text-align:left}
+    th{background:#0f172a}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Aadhaar Verification Demo (Offline / No Backend)</h1>
+  <p class="muted">
+    This page is a fallback to showcase what your backend mock verification does, even if
+    <code>localhost:8080</code> is not reachable.
+  </p>
+
+  <div class="row" style="margin-top:14px">
+    <div class="col">
+      <h3>Sample eAadhaar XML (used by Mock Verify endpoint)</h3>
+      <pre id="xml"></pre>
+    </div>
+    <div class="col">
+      <h3>Parsed Output (what your server returns)</h3>
+      <pre id="json"></pre>
+
+      <h3 style="margin-top:16px">Where this would be called</h3>
+      <p>
+        <div><code>POST /api/digilocker/mock-verify</code></div>
+        <div><code>GET /api/aadhaar/verifications/recent</code></div>
+      </p>
+
+      <button class="secondary" onclick="copyJson()">Copy JSON</button>
+    </div>
+  </div>
+
+  <div style="margin-top:16px" class="muted">
+    Note: In the real run, your backend <b>parses XML using XmlParser</b>, stores <b>last 4</b> in H2,
+    then returns <b>AadhaarResponse</b>.
+  </div>
+</div>
+
+<script>
+  const sampleXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+    "<Document>" +
+    "  <PrintLetter>" +
+    "    <Name>VIKAS KUMAR</Name>" +
+    "    <Dob>1990-01-15</Dob>" +
+    "    <House>12</House>" +
+    "    <Street>MG Road</Street>" +
+    "    <Locality>Near City Center</Locality>" +
+    "    <District>Delhi</District>" +
+    "    <State>Delhi</State>" +
+    "    <Pincode>110001</Pincode>" +
+    "    <AadhaarNumber>1234-5678-9012</AadhaarNumber>" +
+    "  </PrintLetter>" +
+    "</Document>";
+
+  // XmlParser extracts last 4 digits from AadhaarNumber => 9012
+  const sampleResponse = {
+    aadhaarLast4: "9012",
+    status: "VERIFIED"
+  };
+
+  document.getElementById('xml').textContent = sampleXml;
+  document.getElementById('json').textContent = JSON.stringify(sampleResponse, null, 2);
+
+  function copyJson(){
+    navigator.clipboard.writeText(JSON.stringify(sampleResponse));
+    alert('Copied');
+  }
+</script>
+</body>
+</html>
+
